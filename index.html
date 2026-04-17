@@ -1,82 +1,72 @@
-import { useState, useEffect } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Room Cleaning Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; background: #f3f4f6; padding: 15px; }
+    h1, h2 { text-align: center; }
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .weekend {
+      background: #dbeafe;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
 
-const members = ["Varma", "Suresh", "Siddu"];
-const tasks = ["Cooking", "Utensils", "Floor"];
+<h1>Room Cleaning Dashboard</h1>
+<h2 id="day"></h2>
 
-function getDailyRotation(dayOffset) {
-  return tasks.map((task, index) => {
-    const person = members[(index + dayOffset) % members.length];
-    return { task, person };
-  });
+<div id="tasks"></div>
+<div id="weekend"></div>
+
+<script>
+const members = ["Varma","Suresh","Siddu"];
+const tasks = ["Cooking","Utensils","Floor"];
+
+const today = new Date();
+const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+document.getElementById("day").innerText = "Today: " + days[today.getDay()];
+
+// Base date (Friday start)
+const baseDate = new Date("2026-04-17");
+const diff = Math.floor((today - baseDate)/(1000*60*60*24));
+const offset = diff % members.length;
+
+// Daily Tasks
+let html = "";
+tasks.forEach((task, i) => {
+  html += `<div class="card">
+    <span>${task}</span>
+    <b>${members[(i + offset) % members.length]}</b>
+  </div>`;
+});
+document.getElementById("tasks").innerHTML = html;
+
+// Weekend Tasks (balanced rotation)
+if(today.getDay() === 0 || today.getDay() === 6){
+  const mopping = members[(offset) % members.length];
+  const bathroom = members[(offset + 1) % members.length];
+
+  document.getElementById("weekend").innerHTML =
+    `<div class="weekend">
+      <b>Weekend Cleaning</b><br><br>
+      Mopping: <b>${mopping}</b><br>
+      Bathroom: <b>${bathroom}</b>
+    </div>`;
 }
+</script>
 
-function getWeekendRotation(dayOffset) {
-  return {
-    mopping: members[(dayOffset) % members.length],
-    bathroom: members[(dayOffset + 1) % members.length]
-  };
-}
-
-export default function CleaningDashboard() {
-  const [dayOffset, setDayOffset] = useState(0);
-  const [today, setToday] = useState("");
-
-  useEffect(() => {
-    const date = new Date();
-    const day = date.toLocaleDateString("en-IN", { weekday: "long" });
-    setToday(day);
-
-    // Base date (Friday start)
-    const baseDate = new Date("2026-04-17");
-    const diffDays = Math.floor((date - baseDate) / (1000 * 60 * 60 * 24));
-    setDayOffset(diffDays % members.length);
-  }, []);
-
-  const dailyTasks = getDailyRotation(dayOffset);
-  const isWeekend = today === "Saturday" || today === "Sunday";
-  const weekendTasks = getWeekendRotation(dayOffset);
-
-  return (
-    <div className="p-4 min-h-screen bg-gray-100">
-      <h1 className="text-2xl font-bold text-center mb-4">Room Cleaning Dashboard</h1>
-      <h2 className="text-lg text-center mb-6">Today: {today}</h2>
-
-      {/* Daily Tasks */}
-      <div className="grid gap-4">
-        {dailyTasks.map((item, idx) => (
-          <Card key={idx} className="rounded-2xl shadow">
-            <CardContent className="p-4 flex justify-between">
-              <span className="font-medium">{item.task}</span>
-              <span className="font-bold">{item.person}</span>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Weekend Tasks */}
-      {isWeekend && (
-        <div className="mt-6">
-          <Card className="rounded-2xl shadow bg-blue-100">
-            <CardContent className="p-4">
-              <h3 className="font-semibold mb-2">Weekend Deep Cleaning</h3>
-              <div className="flex justify-between">
-                <span>Mopping</span>
-                <span className="font-bold">{weekendTasks.mopping}</span>
-              </div>
-              <div className="flex justify-between mt-2">
-                <span>Bathroom Cleaning</span>
-                <span className="font-bold">{weekendTasks.bathroom}</span>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      )}
-
-      {/* Info */}
-      <div className="mt-6 text-center text-sm text-gray-500">
-        Tasks rotate automatically so everyone gets equal work.
-      </div>
-    </div>
-  );
-}
+</body>
+</html>
