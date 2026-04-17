@@ -44,7 +44,9 @@ const baseDate = new Date("2026-04-17");
 const diff = Math.floor((today - baseDate)/(1000*60*60*24));
 const offset = diff % members.length;
 
-// Daily Tasks
+// ----------------------
+// DAILY TASKS
+// ----------------------
 let html = "";
 tasks.forEach((task, i) => {
   html += `<div class="card">
@@ -54,16 +56,28 @@ tasks.forEach((task, i) => {
 });
 document.getElementById("tasks").innerHTML = html;
 
-// Weekend Tasks (balanced rotation)
-if(today.getDay() === 0 || today.getDay() === 6){
-  const mopping = members[(offset) % members.length];
-  const bathroom = members[(offset + 1) % members.length];
+
+// ----------------------
+// WEEKEND LOGIC (FINAL)
+// ----------------------
+const weekNumber = Math.floor(diff / 7);
+
+// Rotation (balanced)
+const bathroom = members[(weekNumber + 1) % members.length];
+const mopping = members[(weekNumber + 2) % members.length];
+
+// Show on BOTH Saturday & Sunday
+if(today.getDay() === 6 || today.getDay() === 0){
+
+  // Decide actual working day (alternate)
+  const workDay = weekNumber % 2 === 0 ? "Saturday" : "Sunday";
 
   document.getElementById("weekend").innerHTML =
     `<div class="weekend">
       <b>Weekend Cleaning</b><br><br>
-      Mopping: <b>${mopping}</b><br>
-      Bathroom: <b>${bathroom}</b>
+      Bathroom: <b>${bathroom}</b><br>
+      Mopping: <b>${mopping}</b><br><br>
+      <small>Cleaning will be done on: <b>${workDay}</b></small>
     </div>`;
 }
 </script>
