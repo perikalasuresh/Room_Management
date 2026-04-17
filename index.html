@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Room Cleaning Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body { font-family: Arial; background: #f3f4f6; padding: 15px; }
+    h1, h2 { text-align: center; }
+    .card {
+      background: white;
+      padding: 15px;
+      margin: 10px 0;
+      border-radius: 12px;
+      display: flex;
+      justify-content: space-between;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .weekend {
+      background: #dbeafe;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>Room Cleaning Dashboard</h1>
+<h2 id="day"></h2>
+
+<div id="tasks"></div>
+<div id="weekend"></div>
+
+<script>
+const members = ["Varma","Suresh","Siddu"];
+const tasks = ["Cooking","Utensils","Floor"];
+
+const today = new Date();
+const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+document.getElementById("day").innerText = "Today: " + days[today.getDay()];
+
+const baseDate = new Date("2026-04-17");
+const diff = Math.floor((today - baseDate)/(1000*60*60*24));
+const offset = diff % members.length;
+
+let html = "";
+tasks.forEach((task, i) => {
+  html += `<div class="card"><span>${task}</span><b>${members[(i+offset)%3]}</b></div>`;
+});
+
+document.getElementById("tasks").innerHTML = html;
+
+if(today.getDay() === 0 || today.getDay() === 6){
+  document.getElementById("weekend").innerHTML =
+    `<div class="weekend">
+      <b>Weekend Cleaning</b><br>
+      Mopping: ${members[offset%3]}<br>
+      Bathroom: ${members[(offset+1)%3]}
+    </div>`;
+}
+</script>
+
+</body>
+</html>
