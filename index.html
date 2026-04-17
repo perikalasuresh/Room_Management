@@ -15,11 +15,18 @@
       justify-content: space-between;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    .weekend {
+    .box {
       background: #dbeafe;
       padding: 15px;
       border-radius: 12px;
       margin-top: 15px;
+    }
+    .history {
+      background: #e5e7eb;
+      padding: 15px;
+      border-radius: 12px;
+      margin-top: 15px;
+      font-size: 14px;
     }
   </style>
 </head>
@@ -30,6 +37,7 @@
 
 <div id="tasks"></div>
 <div id="weekend"></div>
+<div id="history"></div>
 
 <script>
 const members = ["Varma","Suresh","Siddu"];
@@ -37,9 +45,10 @@ const tasks = ["Cooking","Utensils","Floor"];
 
 const today = new Date();
 const days = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
-document.getElementById("day").innerText = "Today: " + days[today.getDay()];
+const todayName = days[today.getDay()];
+document.getElementById("day").innerText = "Today: " + todayName;
 
-// Base date (Friday start)
+// Base date
 const baseDate = new Date("2026-04-17");
 const diff = Math.floor((today - baseDate)/(1000*60*60*24));
 const offset = diff % members.length;
@@ -58,28 +67,102 @@ document.getElementById("tasks").innerHTML = html;
 
 
 // ----------------------
-// WEEKEND LOGIC (FINAL)
+// WEEKEND LOGIC
 // ----------------------
 const weekNumber = Math.floor(diff / 7);
 
-// Rotation (balanced)
 const bathroom = members[(weekNumber + 1) % members.length];
 const mopping = members[(weekNumber + 2) % members.length];
 
-// Show on BOTH Saturday & Sunday
+const workDay = weekNumber % 2 === 0 ? "this Saturday" : "this Sunday";
+
+let weekendHTML = "";
+
 if(today.getDay() === 6 || today.getDay() === 0){
-
-  // Decide actual working day (alternate)
-  const workDay = weekNumber % 2 === 0 ? "Saturday" : "Sunday";
-
-  document.getElementById("weekend").innerHTML =
-    `<div class="weekend">
-      <b>Weekend Cleaning</b><br><br>
+  weekendHTML = `
+    <div class="box">
+      <b>Weekend Cleaning (This Week)</b><br><br>
       Bathroom: <b>${bathroom}</b><br>
       Mopping: <b>${mopping}</b><br><br>
-      <small>Cleaning will be done on: <b>${workDay}</b></small>
+      <small>Cleaning planned for: <b>${workDay}</b></small>
+    </div>`;
+} else {
+  weekendHTML = `
+    <div class="box">
+      <b>Upcoming Weekend Duties</b><br><br>
+      Bathroom: <b>${bathroom}</b><br>
+      Mopping: <b>${mopping}</b><br><br>
+      <small>Planned for: <b>${workDay}</b></small>
     </div>`;
 }
+
+document.getElementById("weekend").innerHTML = weekendHTML;
+
+
+// ----------------------
+// REMINDER (Browser)
+// ----------------------
+if ("Notification" in window) {
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      if (
+        (todayName === "Saturday" && workDay.includes("Saturday")) ||
+        (todayName === "Sunday" && workDay.includes("Sunday"))
+      ) {
+        new Notification("Room Cleaning Reminder", {
+          body: "Today is your cleaning day! Check duties.",
+        });
+      }
+    }
+  });
+}
+
+
+// ----------------------
+// HISTORY (30 DAYS)
+// ----------------------
+const historyKey = "cleaningHistory";
+
+let history = JSON.parse(localStorage.getItem(historyKey)) || [];
+
+const todayStr = today.toISOString().split("T")[0];
+
+if (!history.some(item => item.date === todayStr)) {
+  history.push({
+    date: todayStr,
+    cooking: members[(0 + offset) % members.length],
+    utensils: members[(1 + offset) % members.length],
+    floor: members[(2 + offset) % members.length],
+    bathroom: bathroom,
+    mopping: mopping
+  });
+}
+
+// Keep last 30 days only
+const cutoff = new Date();
+cutoff.setDate(cutoff.getDate() - 30);
+
+history = history.filter(item => new Date(item.date) >= cutoff);
+
+localStorage.setItem(historyKey, JSON.stringify(history));
+
+// Show history
+let historyHTML = "<div class='history'><b>Last 30 Days History</b><br><br>";
+
+history.slice().reverse().forEach(item => {
+  historyHTML += `
+    <div style="margin-bottom:8px;">
+      <b>${item.date}</b><br>
+      Cooking: ${item.cooking}, Utensils: ${item.utensils}, Floor: ${item.floor}<br>
+      Bathroom: ${item.bathroom}, Mopping: ${item.mopping}
+    </div>
+  `;
+});
+
+historyHTML += "</div>";
+
+document.getElementById("history").innerHTML = historyHTML;
+
 </script>
 
 </body>
